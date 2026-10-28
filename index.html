@@ -3,23 +3,304 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Socks!</title>
+<title>Socks! · Flick, sort, wear the crown</title>
+<meta name="description" content="Socks! is a squishy physics sorting game for Android. Flick floppy socks into the right drawers before the pile buries you. Join the free closed beta.">
+<meta property="og:title" content="Socks!">
+<meta property="og:description" content="Flick floppy socks into the right drawers before the pile buries you. Join the free closed beta on Google Play.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-  body { margin: 0; background: #a8dcf0; color: #2b1d3a; font: 17px/1.6 system-ui, sans-serif; }
-  main { max-width: 640px; margin: 0 auto; padding: 48px 20px; }
-  h1 { font-size: 56px; margin: 0 0 8px; letter-spacing: 1px; }
-  a { color: #2b1d3a; font-weight: 700; }
-  .card { background: #fff; border: 4px solid #2b1d3a; border-radius: 20px; padding: 20px 24px; margin-top: 24px; }
+  :root {
+    --ink: #2b1d3a; --sky: #a8dcf0; --dot: #bfe7f6; --yellow: #ffcf33; --red: #f2464b;
+    --blue: #3d8bf2; --green: #3cc46a; --purple: #7e5aa8; --pink: #ff8fc0; --white: #fff; --muted: #5a4a70;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; color: var(--ink); font: 800 17px/1.55 Nunito, system-ui, sans-serif;
+    background-color: var(--sky);
+    background-image: radial-gradient(var(--dot) 8px, transparent 9px), radial-gradient(var(--dot) 8px, transparent 9px);
+    background-size: 44px 44px; background-position: 0 0, 22px 22px;
+    overflow-x: hidden;
+  }
+  #rain { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+  main { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 32px 16px 0; }
+  .display { font-family: 'Lilita One', system-ui, sans-serif; font-weight: 400; letter-spacing: .01em; line-height: 1;
+    -webkit-text-stroke: var(--sw, 8px) var(--ink); paint-order: stroke fill; }
+
+  /* hero */
+  .hero { text-align: center; padding: 8px 0 12px; }
+  .logo { display: inline-flex; font-size: clamp(76px, 20vw, 150px); --sw: clamp(10px, 2.6vw, 18px); }
+  .logo span { display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+  .logo span:nth-child(1) { color: var(--red); animation-delay: 0s; }
+  .logo span:nth-child(2) { color: var(--yellow); animation-delay: .12s; }
+  .logo span:nth-child(3) { color: var(--green); animation-delay: .24s; }
+  .logo span:nth-child(4) { color: var(--blue); animation-delay: .36s; }
+  .logo span:nth-child(5) { color: var(--red); animation-delay: .48s; }
+  .logo span:nth-child(6) { color: var(--white); animation-delay: .6s; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+  .tag { font-size: clamp(24px, 6vw, 36px); color: var(--white); --sw: 7px; margin: 10px 0 0; }
+  .tag b { color: var(--yellow); font-weight: 400; }
+  #mascot { display: block; width: 220px; height: 240px; margin: 4px auto -6px; }
+  .lead { max-width: 520px; margin: 0 auto; font-size: 19px; }
+
+  .btn { display: inline-block; font-family: 'Lilita One', system-ui, sans-serif; font-weight: 400; font-size: 24px; color: var(--ink);
+    text-decoration: none; background: var(--yellow); border: 4px solid var(--ink); border-radius: 18px; padding: 12px 26px;
+    box-shadow: 0 6px 0 var(--ink); cursor: pointer; transition: transform .08s, box-shadow .08s; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--ink); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
+  .btn.green { background: var(--green); }
+  .btn.white { background: var(--white); font-size: 20px; }
+  .cta { margin: 22px 0 6px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* cards */
+  .card { background: var(--white); border: 4px solid var(--ink); border-radius: 24px; padding: 22px 22px 24px; margin-top: 28px;
+    box-shadow: 0 8px 0 var(--ink); }
+  h2 { margin: 0 0 6px; font-size: 38px; color: var(--yellow); --sw: 8px; }
+  .pill { display: inline-block; font-family: 'Lilita One', system-ui, sans-serif; font-weight: 400; font-size: 15px; color: var(--white);
+    background: var(--red); border: 3px solid var(--ink); border-radius: 999px; padding: 2px 12px; transform: rotate(-3deg); }
+  .steps { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: s; }
+  .steps li { position: relative; padding: 0 0 18px 56px; counter-increment: s; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: -2px; width: 40px; height: 40px; border-radius: 12px;
+    border: 3px solid var(--ink); background: var(--yellow); display: grid; place-items: center;
+    font-family: 'Lilita One', system-ui, sans-serif; font-weight: 400; font-size: 22px; }
+  .steps strong { font-family: 'Lilita One', system-ui, sans-serif; font-weight: 400; font-size: 21px; display: block; }
+  form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  input[type=email] { flex: 1 1 240px; min-width: 0; font: 800 18px Nunito, system-ui, sans-serif; color: var(--ink);
+    border: 4px solid var(--ink); border-radius: 16px; padding: 12px 14px; background: #f4f0fa; }
+  input[type=email]:focus { outline: 4px solid var(--yellow); outline-offset: 2px; }
+  .small { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+  .ok { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #e6f8ec; border: 3px solid var(--green); }
+  .ok.show { display: block; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 14px; }
+  .feat { border: 3px solid var(--ink); border-radius: 18px; padding: 14px 16px; background: #fff8dc; }
+  .feat:nth-child(2) { background: #e9f4ff; } .feat:nth-child(3) { background: #ffeaf3; } .feat:nth-child(4) { background: #eafaf0; }
+  .feat h3 { margin: 0 0 4px; font: 400 23px 'Lilita One', system-ui, sans-serif; }
+  .feat p { margin: 0; font-size: 15.5px; }
+  .stars { color: var(--yellow); -webkit-text-stroke: 1.5px var(--ink); letter-spacing: 2px; }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 36px 16px 44px; font-size: 14px; }
+  footer .card { display: inline-block; margin: 0; padding: 14px 22px; box-shadow: 0 6px 0 var(--ink); }
+  footer a { color: var(--ink); }
+  .floor { position: relative; z-index: 1; height: 56px; margin-top: 40px; border-top: 5px solid var(--ink);
+    background: repeating-conic-gradient(#ffd46b 0 25%, #ffb84d 0 50%) 0 0 / 48px 48px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo span { animation: none; }
+    html { scroll-behavior: auto; }
+  }
 </style>
 </head>
 <body>
+<canvas id="rain" aria-hidden="true"></canvas>
 <main>
-  <h1>Socks!</h1>
-  <p>Flick floppy socks into the right drawers before the pile buries you. A game by solidsosejj (James Scott).</p>
-  <div class="card">
-    <p><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="copyright.html">Copyright Policy</a></p>
-    <p>Contact: jamscoot22@gmail.com</p>
-  </div>
+  <section class="hero">
+    <div class="display logo" aria-label="Socks!"><span>S</span><span>O</span><span>C</span><span>K</span><span>S</span><span>!</span></div>
+    <canvas id="mascot" width="440" height="480" aria-hidden="true"></canvas>
+    <p class="display tag">FLICK. SORT. <b>WEAR THE CROWN.</b></p>
+    <p class="lead">Socks are falling into the room and they won't sort themselves. Grab a floppy sock, flick it into its drawer, and don't let the pile reach the red line.</p>
+    <div class="cta">
+      <a class="btn green" href="#beta">JOIN THE FREE BETA</a>
+      <a class="btn white" href="#modes">WHAT'S INSIDE?</a>
+    </div>
+    <p class="small">Tip: tap the falling socks.</p>
+  </section>
+
+  <section class="card" id="beta">
+    <span class="pill">ANDROID · FREE</span>
+    <h2 class="display">CLOSED BETA</h2>
+    <p>Socks! is in a closed test on Google Play before launch. Play it first, tell me what's too hard, too easy or too sock.</p>
+    <ol class="steps">
+      <li>
+        <strong>Send me your Google account email</strong>
+        Use the Gmail or Google account your Android phone signs in to the Play Store with.
+        <form id="signup" novalidate>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@gmail.com" aria-label="Google account email" required>
+          <button class="btn" type="submit">REQUEST INVITE</button>
+        </form>
+        <p class="small">This opens your email app with a ready-made message to me. Your address is only used to invite you to the test, and deleted after launch. <a href="privacy.html#beta-sign-ups">Privacy</a></p>
+        <div class="ok" id="ok" role="status">Nearly there: press <b>Send</b> in your email app. I'll reply when you're added, usually within a day.</div>
+      </li>
+      <li>
+        <strong>Join the test</strong>
+        When I've added you, open this on your Android phone and tap <b>Become a tester</b>:
+        <div class="cta" style="justify-content:flex-start;margin:12px 0 0">
+          <a class="btn green" href="https://play.google.com/apps/testing/com.solidsosejj.socks" rel="noopener">BECOME A TESTER</a>
+        </div>
+      </li>
+      <li>
+        <strong>Install and play</strong>
+        Install Socks! from the Play Store link on that page. Please keep it installed and play now and then for two weeks: that's what gets the game launched.
+      </li>
+    </ol>
+  </section>
+
+  <section class="card" id="modes">
+    <h2 class="display">WHAT'S INSIDE</h2>
+    <div class="grid">
+      <div class="feat"><h3>Campaign <span class="stars">★★★★★</span></h3><p>Five levels, five stars each. Reach the sock limit and take your stars, or keep going for glory. Freeze, Magnet, Pair Pulse and Soft Lock pickups.</p></div>
+      <div class="feat"><h3>The Daily Pile</h3><p>The same pile for everyone, every day. Practise all you like, then take your one shot. Beat your mates on the UK and world boards.</p></div>
+      <div class="feat"><h3>Sock Shop</h3><p>Earn coins by playing. Dress your sock in colours, patterns, hats and extras. Some gear can only be earned in the campaign.</p></div>
+      <div class="feat"><h3>Quick Game</h3><p>Endless sorting with a new twist every level: swaps, spring drawers, golden socks, stripes and double drops.</p></div>
+    </div>
+  </section>
 </main>
+<div class="floor" aria-hidden="true"></div>
+<footer>
+  <div class="card">
+    <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="copyright.html">Copyright Policy</a><br>
+    Contact: <a href="mailto:jamscoot22@gmail.com">jamscoot22@gmail.com</a><br>
+    © 2026 James Scott (solidsosejj). Music in the game: "Salty Ditty" by Kevin MacLeod (incompetech.com), CC BY 4.0.
+  </div>
+</footer>
+<script>
+'use strict';
+(() => {
+  const INK = '#2b1d3a';
+  const COLS = { red: '#f2464b', blue: '#3d8bf2', yellow: '#ffcf33', green: '#3cc46a', white: '#fbf8f2', black: '#34303f', purple: '#9b6bd6', pink: '#ff8fc0', orange: '#ff9a3c' };
+  const KEYS = Object.keys(COLS);
+  // sock rest shape (leg, heel, foot) from the game
+  const REST = [[0, 0], [0, 14.5], [0, 29], [0, 44], [0, 58], [9, 70], [24, 76], [39, 77]];
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function shade(hex, k) {
+    const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * k));
+    return `rgb(${c})`;
+  }
+  function path(ctx, P) {
+    ctx.beginPath(); ctx.moveTo(P[0].x, P[0].y);
+    for (let i = 1; i < P.length - 1; i++) ctx.quadraticCurveTo(P[i].x, P[i].y, (P[i].x + P[i + 1].x) / 2, (P[i].y + P[i + 1].y) / 2);
+    ctx.lineTo(P[P.length - 1].x, P[P.length - 1].y); ctx.stroke();
+  }
+  // A sock with outline, cuff, stripes and googly eyes, like the game draws them.
+  function drawSock(ctx, P, col, k, opt = {}) {
+    const rw = 12 * k;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = INK; ctx.lineWidth = 2 * rw + 7 * k; path(ctx, P);
+    ctx.strokeStyle = COLS[col]; ctx.lineWidth = 2 * rw; path(ctx, P);
+    if (opt.stripe) {
+      ctx.strokeStyle = COLS[opt.stripe]; ctx.lineCap = 'butt';
+      for (let i = 1; i < P.length - 1; i += 2) {
+        const a = P[i], b = P[i + 1];
+        ctx.beginPath(); ctx.moveTo(a.x + (b.x - a.x) * .15, a.y + (b.y - a.y) * .15); ctx.lineTo(a.x + (b.x - a.x) * .85, a.y + (b.y - a.y) * .85); ctx.stroke();
+      }
+      ctx.lineCap = 'round';
+    }
+    // cuff band
+    ctx.lineCap = 'butt'; ctx.strokeStyle = col === 'white' ? '#fff' : shade(COLS[col], .35);
+    ctx.beginPath(); ctx.moveTo(P[0].x, P[0].y); ctx.lineTo(P[0].x + (P[1].x - P[0].x) * .55, P[0].y + (P[1].y - P[0].y) * .55); ctx.stroke();
+    ctx.lineCap = 'round';
+    // eyes
+    const ex = P[1].x + (P[2].x - P[1].x) * .6, ey = P[1].y + (P[2].y - P[1].y) * .6;
+    const ang = Math.atan2(P[2].y - P[1].y, P[2].x - P[1].x) - Math.PI / 2, gap = 5.6 * k, er = 5.2 * k;
+    for (const s of [-1, 1]) {
+      const x = ex + Math.cos(ang) * gap * s, y = ey + Math.sin(ang) * gap * s;
+      if (opt.blink) { ctx.strokeStyle = INK; ctx.lineWidth = 2.4 * k; ctx.beginPath(); ctx.moveTo(x - er, y); ctx.lineTo(x + er, y); ctx.stroke(); continue; }
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(x, y, er, er * 1.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 2 * k; ctx.stroke();
+      ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x + (opt.lx || 0) * k, y + 1.5 * k + (opt.ly || 0) * k, 2.6 * k, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // ---- the hero mascot: a red sock in a crown, flopping about
+  const mc = document.getElementById('mascot'), m = mc.getContext('2d');
+  function mascot(t) {
+    m.setTransform(1, 0, 0, 1, 0, 0); m.clearRect(0, 0, mc.width, mc.height);
+    const k = 3.6, cx = 196, ground = 440, sway = Math.sin(t * 2.1) * .2, hop = Math.max(0, Math.sin(t * 4.2)) * 10;
+    const P = REST.map(([x, y]) => {
+      const h = Math.max(0, (64 - y) / 64), a = sway * Math.pow(h, 1.4), dx = x - 6, dy = y - 64;
+      return { x: cx + (6 - 16 + dx * Math.cos(a) - dy * Math.sin(a)) * k, y: ground - hop + (64 - 77 + dx * Math.sin(a) + dy * Math.cos(a)) * k - 12 * k };
+    });
+    m.fillStyle = 'rgba(43,29,58,.22)';
+    m.beginPath(); m.ellipse(cx + 30, ground + 6, 120 - hop * 3, 18, 0, 0, Math.PI * 2); m.fill();
+    drawSock(m, P, 'red', k, { blink: (t % 3.4) < .13, lx: Math.sin(t * .9) * 1.8 });
+    // crown on the cuff
+    const ang = Math.atan2(P[0].y - P[1].y, P[0].x - P[1].x) + Math.PI / 2;
+    m.save(); m.translate(P[0].x, P[0].y); m.rotate(ang + Math.sin(t * 3) * .06); m.scale(k, k); m.translate(0, -16);
+    m.beginPath(); m.moveTo(-14, 6); m.lineTo(-16, -10); m.lineTo(-7, -2); m.lineTo(0, -15); m.lineTo(7, -2); m.lineTo(16, -10); m.lineTo(14, 6); m.closePath();
+    m.fillStyle = '#ffcf33'; m.fill(); m.lineJoin = 'round'; m.lineWidth = 3; m.strokeStyle = INK; m.stroke();
+    for (const [jx, c] of [[-8, '#f2464b'], [0, '#3d8bf2'], [8, '#3cc46a']]) { m.beginPath(); m.arc(jx, 1, 2.4, 0, Math.PI * 2); m.fillStyle = c; m.fill(); }
+    m.restore();
+  }
+
+  // ---- falling socks in the background; tap one to flick it
+  const rc = document.getElementById('rain'), r = rc.getContext('2d');
+  let W = 0, H = 0, dpr = 1;
+  const socks = [], pops = [];
+  function resize() {
+    dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+    rc.width = W * dpr; rc.height = H * dpr;
+  }
+  addEventListener('resize', resize); resize();
+  function spawn(top) {
+    const col = KEYS[(Math.random() * KEYS.length) | 0];
+    socks.push({
+      x: Math.random() * W, y: top ? -60 : Math.random() * H, vx: (Math.random() - .5) * 20, vy: 30 + Math.random() * 40,
+      a: Math.random() * 6.28, va: (Math.random() - .5) * 1.2, k: .55 + Math.random() * .5, col,
+      stripe: Math.random() < .3 ? KEYS[(Math.random() * KEYS.length) | 0] : null, ph: Math.random() * 9, blink: 2 + Math.random() * 4,
+    });
+  }
+  const count = () => Math.min(16, Math.round(W * H / 70000));
+  for (let i = 0; i < count(); i++) spawn(false);
+  function shape(s, t) {
+    const c = Math.cos(s.a), sn = Math.sin(s.a);
+    return REST.map(([x, y], i) => {
+      const wob = Math.sin(t * 5 + s.ph - i * .7) * i * .6;
+      const lx = (x - 10 + wob) * s.k * 1.4, ly = (y - 40) * s.k * 1.4;
+      return { x: s.x + lx * c - ly * sn, y: s.y + lx * sn + ly * c };
+    });
+  }
+  addEventListener('pointerdown', e => {
+    if (e.target.closest('a,button,input,form,.card')) return;
+    for (const s of socks) {
+      if (Math.hypot(s.x - e.clientX, s.y - e.clientY) < 60 * s.k) {
+        s.vy = -520; s.vx = (s.x < e.clientX ? -1 : 1) * 160; s.va = (Math.random() - .5) * 14;
+        pops.push({ x: e.clientX, y: e.clientY - 20, t: 0, text: ['WHEE!', '+10', 'PAIR!', 'NICE!', 'BOING!'][(Math.random() * 5) | 0] });
+        break;
+      }
+    }
+  });
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000), t = now / 1000; last = now;
+    mascot(t);
+    r.setTransform(dpr, 0, 0, dpr, 0, 0); r.clearRect(0, 0, W, H);
+    for (let i = socks.length - 1; i >= 0; i--) {
+      const s = socks[i];
+      s.vy = Math.min(s.vy + 260 * dt, 90); s.x += s.vx * dt; s.y += s.vy * dt; s.vx *= .99; s.a += s.va * dt; s.va *= .995;
+      s.blink -= dt; if (s.blink < -.13) s.blink = 2 + Math.random() * 4;
+      if (s.y > H + 80) socks.splice(i, 1);
+      else { r.globalAlpha = .6; drawSock(r, shape(s, t), s.col, s.k, { stripe: s.stripe, blink: s.blink < 0, ly: s.vy < 0 ? -3 : 0 }); }
+    }
+    r.globalAlpha = 1;
+    while (socks.length < count()) spawn(true);
+    r.textAlign = 'center'; r.font = '30px "Lilita One", system-ui'; r.lineJoin = 'round';
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const p = pops[i]; p.t += dt;
+      if (p.t > .9) { pops.splice(i, 1); continue; }
+      r.globalAlpha = 1 - p.t / .9; r.lineWidth = 7; r.strokeStyle = INK; r.strokeText(p.text, p.x, p.y - p.t * 50);
+      r.fillStyle = '#ffcf33'; r.fillText(p.text, p.x, p.y - p.t * 50);
+    }
+    r.globalAlpha = 1;
+    if (!still) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- beta sign-up: opens a ready-made email, no server needed
+  const form = document.getElementById('signup'), email = document.getElementById('email');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { email.setCustomValidity('Please enter your Google account email.'); email.reportValidity(); return; }
+    email.setCustomValidity('');
+    const body = `Hi James,\n\nPlease add me to the Socks! closed beta on Google Play.\n\nMy Google account email: ${v}\n\nThanks!`;
+    location.href = `mailto:jamscoot22@gmail.com?subject=${encodeURIComponent('Socks! beta invite')}&body=${encodeURIComponent(body)}`;
+    document.getElementById('ok').classList.add('show');
+  });
+  email.addEventListener('input', () => email.setCustomValidity(''));
+})();
+</script>
 </body>
 </html>
